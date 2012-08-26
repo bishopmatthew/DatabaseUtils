@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sql>
+	<query name="create_table_types">
+		CREATE TABLE Types
+		(
+		id INTEGER PRIMARY KEY,
+		type_name VARCHAR
+		)
+	</query>
+
+	<query name="create_table_categories">
+		CREATE TABLE Categories
+		(
+		id INTEGER PRIMARY KEY,
+		id_category_type INT,
+		position INT, <!-- Added this to handle the ordering of the categories within their respective id_category_type -->
+		enabled INTEGER, <!-- boolean -->
+		recurring INTEGER, <!-- boolean -->
+		editable INTEGER, <!-- boolean -->
+		category_name VARCHAR,
+		max_amount FLOAT
+		)
+	</query>
+
+	<query name="create_table_transactions">
+		CREATE TABLE Transactions
+		(
+		id INTEGER PRIMARY KEY,
+		id_category INT,
+		transaction_date TEXT, <!-- stored with SimpleDateFormat 'yyyy-MM-dd HH:mm' -->
+		transaction_name VARCHAR,
+		transaction_amount FLOAT
+		)
+	</query>
+	<!-- DUMMY DATA -->
+	<query name="add_dummy_transactions">
+		INSERT INTO Transactions
+		SELECT NULL as id, 1 as id_category, "2012-01-20 11:54" as transaction_date, "de Rahm" as transaction_name, "1000.0" as transaction_amount
+		UNION SELECT NULL, 7, "2012-02-22 11:54", "Consectetur", "950.0"
+		UNION SELECT NULL, 8, "2012-02-23 11:54", "Neque", "1200.00"
+		UNION SELECT NULL, 7, "2012-02-23 11:54", "Quis", "400.0"
+		UNION SELECT NULL, 6, "2012-02-23 11:54", "Excepteur", "123.54"
+		UNION SELECT NULL, 3, "2012-02-23 11:54", "Placeat", "250.50"
+		UNION SELECT NULL, 2, "2012-02-23 11:54", "Exercitationem", "543.30"
+		UNION SELECT NULL, 8, "2012-02-23 11:54", "Tempora", "643.30"
+		UNION SELECT NULL, 2, "2012-02-23 11:54", "Perspiciatis", "643.30"
+		UNION SELECT NULL, 4, "2012-02-23 11:54", "Ullam", "643.30"
+		UNION SELECT NULL, 4, "2012-09-27 21:19", "Ipsum", "1332.62"
+		UNION SELECT NULL, 6, "2013-01-12 21:19", "Sed", "338.52753"
+		UNION SELECT NULL, 11, "2012-02-10 21:19", "Consectetur", "330.50473"
+		UNION SELECT NULL, 19, "2012-08-15 21:19", "Consectetur", "107.0667"
+		UNION SELECT NULL, 18, "2012-09-30 21:19", "Do", "1826.8678"
+		UNION SELECT NULL, 11, "2012-04-12 21:19", "Dolor", "309.43796"
+		UNION SELECT NULL, 4, "2013-01-15 21:19", "Elit", "695.4201"
+		UNION SELECT NULL, 18, "2012-03-27 21:19", "Sed", "1339.972"
+		UNION SELECT NULL, 22, "2012-11-21 21:19", "Sit", "507.35767"
+		UNION SELECT NULL, 12, "2012-11-10 21:19", "Sit", "656.2848"
+		UNION SELECT NULL, 14, "2012-03-03 21:19", "Do", "333.97504"
+		UNION SELECT NULL, 11, "2012-05-19 21:19", "Adipisicing", "511.99466"
+		UNION SELECT NULL, 3, "2012-04-16 21:19", "Sit", "812.87103"
+		UNION SELECT NULL, 4, "2013-01-23 21:19", "Sit", "1981.5676"
+		UNION SELECT NULL, 24, "2012-02-16 21:19", "Sed", "1657.7677"
+		UNION SELECT NULL, 6, "2012-11-30 21:19", "Sit", "1228.1371"
+		UNION SELECT NULL, 3, "2012-09-21 21:19", "Amet", "1748.5011"
+		UNION SELECT NULL, 6, "2012-02-18 21:19", "Eiusmod", "561.2745"
+		UNION SELECT NULL, 13, "2012-03-19 21:19", "Do", "402.2308"
+		UNION SELECT NULL, 9, "2012-08-24 21:19", "Ipsum", "1331.1287"
+		UNION SELECT NULL, 11, "2012-07-25 21:19", "Sit", "1990.6359"
+		UNION SELECT NULL, 8, "2012-10-06 21:19", "Adipisicing", "19.507242"
+		UNION SELECT NULL, 21, "2012-03-21 21:19", "Sit", "1792.744"
+		UNION SELECT NULL, 23, "2012-06-15 21:19", "Elit", "388.76743"
+		UNION SELECT NULL, 14, "2012-04-12 21:19", "Eiusmod", "1736.9998"
+		UNION SELECT NULL, 2, "2012-02-17 21:19", "Amet", "1132.9539"
+		UNION SELECT NULL, 7, "2012-02-24 21:19", "Elit", "1181.7991"
+		UNION SELECT NULL, 6, "2012-04-06 21:19", "Amet", "1483.3112"
+		UNION SELECT NULL, 8, "2012-09-16 21:19", "Do", "621.76166"
+		UNION SELECT NULL, 23, "2012-09-03 21:19", "Dolor", "1652.6414"
+		UNION SELECT NULL, 21, "2012-04-01 21:19", "Dolor", "688.92523"
+		UNION SELECT NULL, 15, "2012-06-25 21:19", "Lorem", "1041.805"
+		UNION SELECT NULL, 9, "2012-03-27 21:19", "Sed", "353.94424"
+		UNION SELECT NULL, 19, "2012-12-22 21:19", "Do", "37.668777"
+		UNION SELECT NULL, 20, "2012-06-17 21:19", "Lorem", "1693.6018"
+		UNION SELECT NULL, 15, "2012-11-29 21:19", "Amet", "250.93443"
+		UNION SELECT NULL, 19, "2012-09-27 21:19", "Sit", "1698.777"
+		UNION SELECT NULL, 12, "2012-07-05 21:19", "Do", "1016.1986"
+		UNION SELECT NULL, 21, "2012-10-09 21:19", "Do", "161.5537"
+		UNION SELECT NULL, 2, "2012-04-12 21:19", "Amet", "915.05585"
+		UNION SELECT NULL, 18, "2012-06-08 21:19", "Sed", "515.9709"
+		UNION SELECT NULL, 20, "2012-07-08 21:19", "Ipsum", "1018.57"
+		UNION SELECT NULL, 21, "2012-06-28 21:19", "Ipsum", "1564.5199"
+		UNION SELECT NULL, 8, "2012-06-21 21:19", "Consectetur", "1552.8407"
+		UNION SELECT NULL, 22, "2012-05-11 21:19", "Eiusmod", "1587.1809"
+		UNION SELECT NULL, 2, "2012-04-13 21:19", "Lorem", "17.94572"
+		UNION SELECT NULL, 13, "2012-07-04 21:19", "Elit", "1951.9717"
+		UNION SELECT NULL, 9, "2012-02-24 21:19", "Do", "1604.0193"
+		UNION SELECT NULL, 8, "2012-03-02 21:19", "Adipisicing", "479.42477"
+		UNION SELECT NULL, 1, "2012-03-11 21:19", "Amet", "73.61098"
+		UNION SELECT NULL, 14, "2012-12-09 21:19", "Eiusmod", "950.69415"
+		UNION SELECT NULL, 3, "2012-02-10 21:19", "Sit", "256.88153"
+		UNION SELECT NULL, 7, "2012-09-09 21:19", "Eiusmod", "1555.4641"
+		UNION SELECT NULL, 17, "2012-05-22 21:19", "Ipsum", "1965.3834"
+		UNION SELECT NULL, 13, "2012-10-07 21:19", "Eiusmod", "1036.3037"
+		UNION SELECT NULL, 20, "2012-08-15 21:19", "Do", "1439.5494"
+		UNION SELECT NULL, 22, "2012-07-14 21:19", "Sit", "90.88273"
+		UNION SELECT NULL, 19, "2012-03-25 21:19", "Sit", "1455.2332"
+		UNION SELECT NULL, 14, "2012-08-02 21:19", "Sed", "302.52573"
+		UNION SELECT NULL, 1, "2012-10-03 21:19", "Elit", "679.9042"
+		UNION SELECT NULL, 12, "2012-05-19 21:19", "Do", "1206.8433"
+		UNION SELECT NULL, 1, "2012-11-12 21:19", "Ipsum", "1791.1478"
+		UNION SELECT NULL, 24, "2012-12-15 21:19", "Dolor", "1643.5431"
+		UNION SELECT NULL, 5, "2012-05-03 21:19", "Elit", "973.025"
+		UNION SELECT NULL, 6, "2012-09-23 21:19", "Sed", "674.52734"
+		UNION SELECT NULL, 10, "2012-12-18 21:19", "Sed", "1611.6738"
+		UNION SELECT NULL, 13, "2012-07-16 21:19", "Adipisicing", "287.355"
+		UNION SELECT NULL, 5, "2012-03-04 21:19", "Elit", "1549.8811"
+		UNION SELECT NULL, 4, "2012-06-01 21:19", "Adipisicing", "1570.5796"
+		UNION SELECT NULL, 3, "2012-10-04 21:19", "Dolor", "1106.9058"
+		UNION SELECT NULL, 12, "2012-04-30 21:19", "Amet", "1030.4701"
+		UNION SELECT NULL, 9, "2012-04-04 21:19", "Dolor", "1971.9127"
+		UNION SELECT NULL, 7, "2012-07-08 21:19", "Eiusmod", "22.251917"
+		UNION SELECT NULL, 17, "2012-02-28 21:19", "Ipsum", "1488.6572"
+		UNION SELECT NULL, 20, "2012-08-05 21:19", "Dolor", "414.31433"
+		UNION SELECT NULL, 14, "2012-10-18 21:19", "Dolor", "1644.3584"
+		UNION SELECT NULL, 20, "2012-04-29 21:19", "Eiusmod", "1917.3997"
+		UNION SELECT NULL, 5, "2012-04-23 21:19", "Lorem", "1021.1075"
+		UNION SELECT NULL, 7, "2012-10-05 21:19", "Adipisicing", "1070.5897"
+		UNION SELECT NULL, 23, "2012-09-06 21:19", "Sit", "414.31006"
+		UNION SELECT NULL, 15, "2012-10-09 21:19", "Amet", "1290.2693"
+		UNION SELECT NULL, 15, "2012-11-18 21:19", "Sed", "1221.5599"
+		UNION SELECT NULL, 24, "2012-06-07 21:19", "Ipsum", "1196.8629"
+		UNION SELECT NULL, 19, "2012-06-08 21:19", "Amet", "71.34528"
+		UNION SELECT NULL, 23, "2012-02-15 21:19", "Adipisicing", "1232.6696"
+		UNION SELECT NULL, 12, "2012-10-06 21:19", "Do", "673.537"
+		UNION SELECT NULL, 10, "2012-05-03 21:19", "Eiusmod", "1786.5455"
+		UNION SELECT NULL, 24, "2012-12-05 21:19", "Elit", "379.2574"
+		UNION SELECT NULL, 9, "2012-02-21 21:19", "Sed", "1506.3873"
+		UNION SELECT NULL, 19, "2013-01-30 21:19", "Elit", "171.9702"
+		UNION SELECT NULL, 23, "2012-03-21 21:19", "Amet", "1042.0327"
+		UNION SELECT NULL, 14, "2012-09-24 21:19", "Dolor", "723.2265"
+		UNION SELECT NULL, 4, "2012-04-09 21:19", "Adipisicing", "712.6195"
+		UNION SELECT NULL, 9, "2012-03-24 21:19", "Eiusmod", "769.682"
+		UNION SELECT NULL, 18, "2013-01-14 21:19", "Ipsum", "90.22935"
+		UNION SELECT NULL, 23, "2012-11-14 21:19", "Eiusmod", "950.3115"
+		UNION SELECT NULL, 16, "2012-03-03 21:19", "Consectetur", "1855.0028"
+		UNION SELECT NULL, 21, "2012-06-09 21:19", "Ipsum", "1498.8846"
+		UNION SELECT NULL, 17, "2012-09-20 21:19", "Adipisicing", "1471.4236"
+		UNION SELECT NULL, 3, "2012-06-06 21:19", "Amet", "1811.2261"
+		UNION SELECT NULL, 3, "2012-07-26 21:19", "Sit", "1643.0557"
+		UNION SELECT NULL, 6, "2012-02-08 21:19", "Adipisicing", "1040.5212"
+		UNION SELECT NULL, 10, "2013-01-12 21:19", "Amet", "1192.0762"
+		UNION SELECT NULL, 16, "2013-01-16 21:19", "Consectetur", "283.07767"
+		UNION SELECT NULL, 2, "2012-09-28 21:19", "Eiusmod", "1932.2606"
+		UNION SELECT NULL, 17, "2012-03-17 21:19", "Dolor", "3.6209354"
+		UNION SELECT NULL, 16, "2012-08-06 21:19", "Sed", "757.50836"
+		UNION SELECT NULL, 15, "2012-05-11 21:19", "Lorem", "577.4109"
+		UNION SELECT NULL, 15, "2012-04-03 21:19", "Do", "1576.634"
+		UNION SELECT NULL, 7, "2012-09-11 21:19", "Eiusmod", "508.40326"
+		UNION SELECT NULL, 18, "2013-01-12 21:19", "Dolor", "1400.7941"
+		UNION SELECT NULL, 3, "2012-11-25 21:19", "Elit", "1833.0969"
+		UNION SELECT NULL, 13, "2012-04-29 21:19", "Eiusmod", "1751.7083"
+		UNION SELECT NULL, 12, "2012-11-12 21:19", "Do", "848.846"
+		UNION SELECT NULL, 16, "2012-10-17 21:19", "Do", "599.8163"
+		UNION SELECT NULL, 20, "2012-03-20 21:19", "Elit", "283.16803"
+		UNION SELECT NULL, 21, "2013-01-21 21:19", "Ipsum", "843.9155"
+		UNION SELECT NULL, 11, "2012-04-10 21:19", "Amet", "1707.275"
+		UNION SELECT NULL, 10, "2012-12-25 21:19", "Lorem", "1357.0492"
+		UNION SELECT NULL, 8, "2012-03-02 21:19", "Sit", "1398.6926"
+	</query>
+	
+	<!-- REAL DATA -->
+	<query name="add_types_french">
+		INSERT INTO Types
+		SELECT 1 as id, "Revenus" as type_name
+		UNION SELECT 2, "Dépenses"
+	</query>
+	
+	<query name="add_types_german">
+		INSERT INTO Types
+		SELECT 1 as id, "Einnahmen" as type_name
+		UNION SELECT 2, "Ausgaben"
+	</query>
+	
+	<query name="add_categories_french">
+		INSERT INTO Categories
+		SELECT 0 as id, 1 as id_category_type, 1 as position, 1 as enabled, 0 as recurrent, 0 as editable, "Report mensuel" as category_name, "0" as max_amount
+		UNION SELECT NULL, 1, 2, 1, 0, 1, "Argent de poche", "0"
+		UNION SELECT NULL, 1, 3, 1, 0, 1, "Salaire", "0"
+		UNION SELECT NULL, 1, 4, 1, 0, 1, "Pension / bourse", "0"
+		UNION SELECT NULL, 1, 5, 1, 0, 1, "Autres", "0"
+		UNION SELECT NULL, 2, 1, 1, 0, 1, "Logement / charges", "0"
+		UNION SELECT NULL, 2, 2, 1, 0, 1, "Habillement", "0"
+		UNION SELECT NULL, 2, 3, 1, 0, 1, "Nourriture", "0"
+		UNION SELECT NULL, 2, 4, 1, 0, 1, "Sports / loisirs", "0"
+		UNION SELECT NULL, 2, 5, 1, 0, 1, "Sorties / cinéma", "0"
+		UNION SELECT NULL, 2, 6, 1, 0, 1, "Téléphone / internet / TV", "0"
+		UNION SELECT NULL, 2, 7, 1, 0, 1, "Musique / vidéo", "0"
+		UNION SELECT NULL, 2, 8, 1, 0, 1, "Electronique / jeux", "0"
+		UNION SELECT NULL, 2, 9, 1, 0, 1, "Musique / vidéo", "0"
+		UNION SELECT NULL, 2, 10, 1, 0, 1, "Electronique / jeux", "0"
+		UNION SELECT NULL, 2, 11, 1, 0, 1, "Coiffeur / hygiène", "0"
+		UNION SELECT NULL, 2, 12, 1, 0, 1, "Entretien ménage", "0"
+		UNION SELECT NULL, 2, 13, 1, 0, 1, "Assurance maladie / Médecin / médicaments", "0"
+		UNION SELECT NULL, 2, 14, 1, 0, 1, "Impôts", "0"
+		UNION SELECT NULL, 2, 15, 1, 0, 1, "Vacances", "0"
+		UNION SELECT NULL, 2, 16, 1, 0, 1, "Remboursement", "0"
+		UNION SELECT NULL, 2, 17, 1, 0, 1, "Autres", "0"
+	</query>
+	
+	<query name="add_categories_german">
+	INSERT INTO Categories
+		SELECT 0 as id, 1 as id_category_type, 1 as position, 1 as enabled, 0 as recurrent, 0 as editable, "Monatsbericht" as category_name, "0" as max_amount
+		UNION SELECT NULL, 1, 2, 1, 0, 1, "Taschengeld", "0"
+		UNION SELECT NULL, 1, 3, 1, 0, 1, "Lohn", "0"
+		UNION SELECT NULL, 1, 4, 1, 0, 1, "Sozialversicherungsleistungen / Stipendien Alimente", "0"
+		UNION SELECT NULL, 1, 5, 1, 0, 1, "Andere", "0"
+		UNION SELECT NULL, 2, 1, 1, 0, 1, "Wohnung", "0"
+		UNION SELECT NULL, 2, 2, 1, 0, 1, "Kleider / Schuhe", "0"
+		UNION SELECT NULL, 2, 3, 1, 0, 1, "Nahrung / Getränke", "0"
+		UNION SELECT NULL, 2, 4, 1, 0, 1, "Sport / Freizeitaktivitäten", "0"
+		UNION SELECT NULL, 2, 5, 1, 0, 1, "Ausgang / Kino", "0"
+		UNION SELECT NULL, 2, 6, 1, 0, 1, "Telefon / Internet / TV", "0"
+		UNION SELECT NULL, 2, 7, 1, 0, 1, "Musik / Video", "0"
+		UNION SELECT NULL, 2, 8, 1, 0, 1, "Elektronik / Spiele", "0"
+		UNION SELECT NULL, 2, 10, 1, 0, 1, "Coiffeur / Körperpflege", "0"
+		UNION SELECT NULL, 2, 11, 1, 0, 1, "Krankenkasse / Arzt / Medikamente", "0"
+		UNION SELECT NULL, 2, 12, 1, 0, 1, "Steuern", "0"
+		UNION SELECT NULL, 2, 13, 1, 0, 1, "Ferien", "0"
+		UNION SELECT NULL, 2, 14, 1, 0, 1, "Rückzahlungen", "0"
+		UNION SELECT NULL, 2, 15, 1, 0, 1, "Andere", "0"
+	 </query>
+	
+	<!-- SEARCH QUERIES -->
+	<query name="load_monthly_transactions_by_type">
+		SELECT 
+		Transactions.id, Transactions.id_category, Transactions.transaction_name, Transactions.transaction_date, Transactions.transaction_amount
+		FROM 
+		Transactions
+		INNER JOIN
+		Categories
+		ON
+		Transactions.id_category = Categories.id
+		WHERE
+		Categories.id_category_type=?
+		AND
+		Transactions.transaction_date&gt;=? 
+		AND
+		Transactions.transaction_date&lt;=?
+		ORDER BY
+		Transactions.transaction_date ASC
+	</query>
+	<query name="load_recurring_transactions_between_dates">
+		SELECT 
+		Transactions.id, Transactions.id_category, Transactions.transaction_name, Transactions.transaction_date, Transactions.transaction_amount
+		FROM 
+		Transactions
+		INNER JOIN
+		Categories
+		ON
+		Transactions.id_category = Categories.id
+		WHERE
+		Categories.recurring=?
+		AND
+		Transactions.transaction_date&gt;=? 
+		AND
+		Transactions.transaction_date&lt;=?
+		ORDER BY
+		Transactions.transaction_date ASC
+	</query>
+	
+</sql>
