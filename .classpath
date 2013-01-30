@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="com/airlocksoftware/database/demo/LiftLog.java|com/airlocksoftware/database/demo/SetLog.java|com/airlocksoftware/database/demo/TestActivity.java|com/airlocksoftware/database/demo/WorkoutLog.java" kind="src" path="src"/>
+	<classpathentry excluding="com/airlocksoftware/database/demo/LiftLog.java|com/airlocksoftware/database/demo/SetLog.java|com/airlocksoftware/database/demo/TestActivity.java|com/airlocksoftware/database/demo/WorkoutLog.java|com/airlocksoftware/database/HierarchicalSqlObject.java" kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>

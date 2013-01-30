@@ -2,19 +2,24 @@ package com.airlocksoftware.database;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-/** Abstract class used to represent a row in a table. Has CRUD methods, as well as the ability to create the table.
- *  Public, non-transient fields of basic types are put into the database. **/
+/**
+ * Abstract class used to represent a row in a table. Has CRUD methods, as well as the ability to create the table.
+ * Public, non-transient fields of basic types are used as columns.
+ **/
 public abstract class SqlObject implements Serializable {
 
 	// DATABASE FIELDS
@@ -24,7 +29,6 @@ public abstract class SqlObject implements Serializable {
 	protected String ID = "id";
 
 	// UNIMPORTANT CACHE DATA
-	private int mColCount;
 	private String[] mColNames;
 
 	// CONSTANTS
@@ -38,27 +42,28 @@ public abstract class SqlObject implements Serializable {
 	public static final String INTEGER = "INTEGER";
 	public static final String LONG = "INTEGER";
 	public static final String BOOLEAN = "INTEGER";
+	public static final String ENUM = "STRING";
 	public static final String FLOAT = "FLOAT";
 	public static final String STRING = "STRING";
 	public static final String DATE = "STRING";
 	public static final String OTHER = "STRING";
 
-	// NAMES FOR CURSORS (these might need to be static)
 	public String[] getColNames() {
-		// CACHE
+		// cached value
 		if (mColNames != null) return mColNames;
 
 		Field[] fields = getClass().getDeclaredFields();
 		ArrayList<String> cols = new ArrayList<String>();
 		for (int i = 0; i < fields.length; i++) {
 			try {
-				int modifiers = fields[i].getModifiers();
-				boolean shouldSave = !Modifier.isTransient(modifiers) && Modifier.isPublic(modifiers);
-				if (shouldSave) cols.add(fields[i].getName());
+				Field field = fields[i];
+				if (isColField(field)) cols.add(field.getName());
 			} catch (Exception e) {
 				Log.d(TAG, "Error: couldn't get column names for object = " + toString());
 			}
 		}
+		// add ID field
+		cols.add(ID);
 		mColNames = (String[]) cols.toArray(new String[cols.size()]);
 		return mColNames;
 	}
@@ -77,51 +82,25 @@ public abstract class SqlObject implements Serializable {
 	 * 
 	 * @throws Exception
 	 **/
-	protected boolean create(DbInterface db) throws Exception {
-//		DbInterface db = DbInterface.getInstance();
-
-		ContentValues values = new ContentValues();
-		Field[] fields = getColFields();
-
-		for (Field field : fields) {
-			try {
-				Object toSave = field.get(this);
-				if (toSave instanceof Integer) {
-					values.put(field.getName(), (Integer) toSave);
-				} else if (toSave instanceof Boolean) {
-					values.put(field.getName(), (Boolean) toSave);
-				} else if (toSave instanceof Float) {
-					values.put(field.getName(), (Float) toSave);
-				} else if (toSave instanceof Long) {
-					values.put(field.getName(), (Long) toSave);
-				} else if (toSave instanceof String) {
-					values.put(field.getName(), (String) toSave);
-				} else if (toSave instanceof Date) {
-					values.put(field.getName(), dateToString((Date) toSave));
-				} else {
-					values.put(field.getName(), toSave.toString());
-				}
-
-			} catch (Exception e) {
-				Log.d(TAG, "Error saving object " + toString() + ": " + e.toString());
-				throw new Exception("Error creating object=" + getTableName(), e);
-			}
-		}
+	protected boolean create(DbInterface db) {
+		ContentValues values = this.toContentValues();
+		// we're not setting id when we create this
+		values.remove(ID);
 
 		id = db.getDb().insert(getTableName(), null, values);
 		return (id != -1);
 	}
 
-	public boolean read(DbInterface db, long id) {
-		Cursor cursor = db.getDb().query(getTableName(), getColNames(), ID + "=?", new String[] { Long.toString(id) },
-				null, null, null);
+	public boolean read(DbInterface db, long idToRead) {
+		Cursor cursor = db.getDb().query(getTableName(), getColNames(), ID + "=?",
+				new String[] { Long.toString(idToRead) }, null, null, null);
 
 		if (cursor.moveToFirst()) {
 			readFromCursor(cursor);
 			cursor.close();
 			return true;
 		} else {
-			Log.d(TAG, "Couldn't find id=" + id + " in the " + getTableName());
+			Log.d(TAG, "Couldn't find id=" + id + " in the " + getTableName() + " table");
 			cursor.close();
 			return false;
 		}
@@ -133,23 +112,30 @@ public abstract class SqlObject implements Serializable {
 
 		for (Field field : fields) {
 			try {
-				if (field.getClass().isInstance(Integer.class)) {
+				Class<?> type = field.getType();
+				if (type.isAssignableFrom(Integer.TYPE)) {
 					field.set(this, cursor.getInt(cursor.getColumnIndex(field.getName())));
-				} else if (field.getClass().isInstance(Boolean.class)) {
-					field.set(this, intToBool(cursor.getInt(cursor.getColumnIndex(field.getName()))));
-				} else if (field.getClass().isInstance(Float.class)) {
+				} else if (type.isAssignableFrom(Boolean.TYPE)) {
+					int bool = cursor.getInt(cursor.getColumnIndex(field.getName()));
+					boolean val = intToBool(bool);
+					field.set(this, val);
+				} else if (type.isAssignableFrom(Float.TYPE)) {
 					field.set(this, cursor.getFloat(cursor.getColumnIndex(field.getName())));
-				} else if (field.getClass().isInstance(Long.class)) {
+				} else if (type.isAssignableFrom(Long.TYPE)) {
 					field.set(this, cursor.getLong(cursor.getColumnIndex(field.getName())));
-				} else if (field.getClass().isInstance(String.class)) {
+				} else if (type.isEnum()) {
+					Method valueOf = type.getMethod("valueOf", String.class);
+					String enumName = cursor.getString(cursor.getColumnIndex(field.getName()));
+					if (enumName != null) field.set(this, valueOf.invoke(null, enumName));
+				} else if (type.isAssignableFrom(String.class)) {
 					field.set(this, cursor.getString(cursor.getColumnIndex(field.getName())));
-				} else if (field.getClass().isInstance(Date.class)) {
+				} else if (type.isAssignableFrom(Date.class)) {
 					field.set(this, stringToDate(cursor.getString(cursor.getColumnIndex(field.getName()))));
 				} else {
-					throw new Exception("Object isn't one of the supported type");
+					throw new Exception("Object: " + field.toString() + " isn't one of the supported type");
 				}
 			} catch (Exception e) {
-				Log.d(TAG, "Error reading object " + toString() + ": " + e.toString());
+				Log.d(TAG, "Error reading object\n" + toString() + ": \n\n" + e.toString());
 			}
 		}
 	}
@@ -157,33 +143,7 @@ public abstract class SqlObject implements Serializable {
 	// TODO I can probably abstract the creation of the content values out
 	// between create and update
 	public boolean update(DbInterface db) {
-
-		ContentValues values = new ContentValues();
-		Field[] fields = getColFields();
-
-		for (Field field : fields) {
-			try {
-				Object toSave = field.get(this);
-				if (toSave instanceof Integer) {
-					values.put(field.getName(), (Integer) toSave);
-				} else if (toSave instanceof Boolean) {
-					values.put(field.getName(), (Boolean) toSave);
-				} else if (toSave instanceof Float) {
-					values.put(field.getName(), (Float) toSave);
-				} else if (toSave instanceof Long) {
-					values.put(field.getName(), (Long) toSave);
-				} else if (toSave instanceof String) {
-					values.put(field.getName(), (String) toSave);
-				} else if (toSave instanceof Date) {
-					values.put(field.getName(), dateToString((Date) toSave));
-				} else {
-					values.put(field.getName(), toSave.toString());
-				}
-
-			} catch (Exception e) {
-				Log.d(TAG, "Error updating object " + toString() + ": " + e.toString());
-			}
-		}
+		ContentValues values = this.toContentValues();
 
 		return db.getDb().update(getTableName(), values, ID + "=?", new String[] { Long.toString(id) }) > 0;
 	}
@@ -198,24 +158,28 @@ public abstract class SqlObject implements Serializable {
 	}
 
 	// TABLE OPERATIONS
-	// TODO ADD DROP TABLE SUPPORT (even better, add upgrade support)
+
 	/** Creates a table for these objects if one doesn't already exist **/
 	public boolean createTable(DbInterface db) {
+		return createTable(db.getDb());
+	}
+
+	/** Creates a table for these objects if one doesn't already exist **/
+	public boolean createTable(SQLiteDatabase db) {
 		Field[] fields = getColFields();
 		String statement = "CREATE TABLE IF NOT EXISTS " + getTableName() + " ( ";
-		statement += "id INTEGER PRIMARY KEY, ";
+		statement += ID + " INTEGER PRIMARY KEY, ";
 		for (Field col : fields) {
-			// skip id
-			if (col.getName().equals(ID)) {
-				continue;
-			}
+			// skip id (although I don't think it will show up in subclasses)
+			if (col.getName().equals(ID)) continue;
+
 			// handle other types
 			statement += col.getName() + " " + getFieldSqlType(col) + ", ";
 		}
 		// remove final comma (,)
 		statement = statement.substring(0, statement.length() - 2);
 		statement += " ) ";
-		db.getDb().execSQL(statement);
+		db.execSQL(statement);
 		return true;
 	}
 
@@ -224,6 +188,8 @@ public abstract class SqlObject implements Serializable {
 		Cursor c = db.getDb().rawQuery(CHECK_TABLE_EXISTS, new String[] { getTableName() });
 		return (c != null && c.moveToFirst());
 	}
+
+	// TODO add drop table support (even better, add upgrade support)
 
 	// UTIL METHODS
 	public static String dateToString(Date date) {
@@ -251,14 +217,17 @@ public abstract class SqlObject implements Serializable {
 	}
 
 	// PROTECTED UTILS
-	protected boolean isColField(Field toCheck) {
+
+	private boolean isColField(Field toCheck) {
 		int modifiers = toCheck.getModifiers();
-		return (!Modifier.isTransient(modifiers) && Modifier.isPublic(modifiers));
+		return (!Modifier.isTransient(modifiers) && Modifier.isPublic(modifiers) && !Modifier
+				.isStatic(modifiers));
 	}
 
-	protected Field[] getColFields() {
-		Field[] fields = getClass().getDeclaredFields();
-		ArrayList<Field> colFields = new ArrayList<Field>();
+	private Field[] getColFields() {
+		// Field[] fields = getClass().getDeclaredFields();
+		Field[] fields = getClass().getFields();
+		List<Field> colFields = new ArrayList<Field>();
 
 		for (int i = 0; i < fields.length; i++) {
 			try {
@@ -277,6 +246,8 @@ public abstract class SqlObject implements Serializable {
 			Object toSave = field.get(this);
 			if (toSave instanceof Integer) {
 				return INTEGER;
+			} else if (toSave.getClass().isEnum()) {
+				return ENUM;
 			} else if (toSave instanceof Boolean) {
 				return BOOLEAN;
 			} else if (toSave instanceof Float) {
@@ -294,5 +265,44 @@ public abstract class SqlObject implements Serializable {
 			Log.d(TAG, "Error getting FieldSqlType: " + field.toString());
 			return OTHER;
 		}
+	}
+
+	protected ContentValues toContentValues() {
+		ContentValues values = new ContentValues();
+		Field[] fields = getColFields();
+
+		for (Field field : fields) {
+			try {
+				Object toSave = field.get(this);
+				if (toSave == null) continue; // object is null, don't put it in ContentValues
+
+				if (toSave instanceof Integer) {
+					values.put(field.getName(), (Integer) toSave);
+				} else if (toSave.getClass().isEnum()) {
+					values.put(field.getName(), toSave.toString());
+				} else if (toSave instanceof Boolean) {
+					values.put(field.getName(), (Boolean) toSave);
+				} else if (toSave instanceof Float) {
+					values.put(field.getName(), (Float) toSave);
+				} else if (toSave instanceof Long) {
+					values.put(field.getName(), (Long) toSave);
+				} else if (toSave instanceof String) {
+					values.put(field.getName(), (String) toSave);
+				} else if (toSave instanceof Date) {
+					values.put(field.getName(), dateToString((Date) toSave));
+				} else {
+					values.put(field.getName(), toSave.toString());
+				}
+
+			} catch (Exception e) {
+				Log.d(TAG, "Error saving object " + toString() + ": " + e.toString());
+				throw new RuntimeException("Error creating object=" + getTableName(), e);
+			}
+		}
+
+		// put id in
+		values.put(ID, id);
+
+		return values;
 	}
 }

@@ -19,11 +19,11 @@ public class DbInterface {
 
 	private SQLiteDatabase mDb;
 	private Context mContext;
-	
+
 	// CONSTANTS
 	private static final String TAG = DbInterface.class.getSimpleName();
 
-	private DbInterface(Context context, DbOpener opener) {
+	public DbInterface(Context context, DbOpener opener) {
 		mContext = context;
 		mDb = opener.getWritableDatabase();
 		// Enable foreign key constraints
@@ -36,20 +36,21 @@ public class DbInterface {
 	public SQLiteDatabase getDb() {
 		return mDb;
 	}
-	
+
 	/** Gets the SQL query as a string from R.xml.sql_queries by it's 'name' attribute **/
 	public String getSqlFromXml(String name) {
-		XmlResourceParser parser = mContext.getResources().getXml(R.xml.sql_queries);
+		XmlResourceParser parser = mContext.getResources()
+																				.getXml(R.xml.sql_queries);
 		String query = null;
 		while (true) {
 			try {
 				int eventType = parser.next();
 				if (eventType == XmlPullParser.END_DOCUMENT) {
 					break;
-				} else if (eventType == XmlPullParser.START_TAG
-						&& parser.getName().equals("query")
-						&& parser.getAttributeValue(null, "name").equals(name)
-						&& parser.next() == XmlPullParser.TEXT) {
+				} else if (eventType == XmlPullParser.START_TAG && parser.getName()
+																																	.equals("query")
+						&& parser.getAttributeValue(null, "name")
+											.equals(name) && parser.next() == XmlPullParser.TEXT) {
 
 					query = parser.getText();
 					break;
@@ -60,7 +61,9 @@ public class DbInterface {
 			}
 		}
 
-		return query.trim().replace("/n", "").replace("/t", "");
+		return query.trim()
+								.replace("/n", "")
+								.replace("/t", "");
 	}
 
 	/** Checks if any rows match the arguments **/
@@ -70,7 +73,7 @@ public class DbInterface {
 		cursor.close();
 		return exists;
 	}
-	
+
 	/** Checks if a given string exists in the specified table and column **/
 	public boolean exists(String table, String column, String toCheck) {
 		String[] selectionArgs = new String[] { toCheck };
@@ -80,10 +83,24 @@ public class DbInterface {
 		return exists;
 	}
 
+	/** Gets the id of the first row whose column matches toMatch **/
+	public long getId(String table, String column, String toMatch) {
+		String[] selectionArgs = new String[] { toMatch };
+		Cursor cursor = mDb.rawQuery("SELECT id FROM " + table + " where " + column + "=? LIMIT 1", selectionArgs);
+
+		long id = -1;
+
+		if (cursor.moveToFirst()) {
+			id = cursor.getLong(cursor.getColumnIndex("id"));
+		}
+		cursor.close();
+		return id;
+	}
+
 	/** Gets the maximum value stored in the db, for the given arguments **/
 	public int getMax(String table, String column, String whereClause, String[] whereArgs) {
-		Cursor cursor = mDb.query(table, new String[] {column}, whereClause, whereArgs, null, null, column + " ASC");
-		if(cursor.moveToFirst()) {
+		Cursor cursor = mDb.query(table, new String[] { column }, whereClause, whereArgs, null, null, column + " ASC");
+		if (cursor.moveToFirst()) {
 			int maxValue = cursor.getInt(cursor.getColumnIndex(column));
 			return maxValue;
 		} else {
@@ -91,7 +108,7 @@ public class DbInterface {
 			return -1;
 		}
 	}
-	
+
 	/** Gets an array of longs matching the arguments **/
 	public long[] getAllLongs(String table, String column) {
 		Cursor c = mDb.query(table, new String[] { column }, null, null, null, null, column);
@@ -108,6 +125,5 @@ public class DbInterface {
 		c.close();
 		return toReturn;
 	}
-
 
 }
