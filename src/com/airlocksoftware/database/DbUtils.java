@@ -9,38 +9,23 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 /**
- * Manages the database. Also provides some methods for interacting with the
- * database without the need for cursors.
+ * Static helper methods for interating with a SQLiteDatabase
  * 
  * @author matthewbishop
  * 
  */
-public class DbInterface {
+public class DbUtils {
 
 	private SQLiteDatabase mDb;
 	private Context mContext;
 
 	// CONSTANTS
-	private static final String TAG = DbInterface.class.getSimpleName();
-
-	public DbInterface(Context context, DbOpener opener) {
-		mContext = context;
-		mDb = opener.getWritableDatabase();
-		// Enable foreign key constraints
-		if (!mDb.isReadOnly()) {
-			mDb.execSQL("PRAGMA foreign_keys = ON;");
-		}
-	}
-
-	/** For when you need direct access to the database **/
-	public SQLiteDatabase getDb() {
-		return mDb;
-	}
+	private static final String TAG = DbUtils.class.getSimpleName();
 
 	/** Gets the SQL query as a string from R.xml.sql_queries by it's 'name' attribute **/
-	public String getSqlFromXml(String name) {
-		XmlResourceParser parser = mContext.getResources()
-																				.getXml(R.xml.sql_queries);
+	public static String getSqlFromXml(Context context, String name) {
+		XmlResourceParser parser = context.getResources()
+																			.getXml(R.xml.sql_queries);
 		String query = null;
 		while (true) {
 			try {
@@ -67,26 +52,26 @@ public class DbInterface {
 	}
 
 	/** Checks if any rows match the arguments **/
-	public boolean exists(String table, String whereClause, String[] whereArgs) {
-		Cursor cursor = mDb.rawQuery("SELECT 1 FROM " + table + " where " + whereClause, whereArgs);
+	public static boolean exists(SQLiteDatabase db, String table, String whereClause, String[] whereArgs) {
+		Cursor cursor = db.rawQuery("SELECT 1 FROM " + table + " where " + whereClause, whereArgs);
 		boolean exists = cursor.moveToFirst();
 		cursor.close();
 		return exists;
 	}
 
 	/** Checks if a given string exists in the specified table and column **/
-	public boolean exists(String table, String column, String toCheck) {
+	public static boolean exists(SQLiteDatabase db, String table, String column, String toCheck) {
 		String[] selectionArgs = new String[] { toCheck };
-		Cursor cursor = mDb.rawQuery("SELECT 1 FROM " + table + " where " + column + "=?", selectionArgs);
+		Cursor cursor = db.rawQuery("SELECT 1 FROM " + table + " where " + column + "=?", selectionArgs);
 		boolean exists = cursor.moveToFirst();
 		cursor.close();
 		return exists;
 	}
 
 	/** Gets the id of the first row whose column matches toMatch **/
-	public long getId(String table, String column, String toMatch) {
+	public static long getId(SQLiteDatabase db, String table, String column, String toMatch) {
 		String[] selectionArgs = new String[] { toMatch };
-		Cursor cursor = mDb.rawQuery("SELECT id FROM " + table + " where " + column + "=? LIMIT 1", selectionArgs);
+		Cursor cursor = db.rawQuery("SELECT id FROM " + table + " where " + column + "=? LIMIT 1", selectionArgs);
 
 		long id = -1;
 
@@ -98,8 +83,8 @@ public class DbInterface {
 	}
 
 	/** Gets the maximum value stored in the db, for the given arguments **/
-	public int getMax(String table, String column, String whereClause, String[] whereArgs) {
-		Cursor cursor = mDb.query(table, new String[] { column }, whereClause, whereArgs, null, null, column + " ASC");
+	public static int getMax(SQLiteDatabase db, String table, String column, String whereClause, String[] whereArgs) {
+		Cursor cursor = db.query(table, new String[] { column }, whereClause, whereArgs, null, null, column + " ASC");
 		if (cursor.moveToFirst()) {
 			int maxValue = cursor.getInt(cursor.getColumnIndex(column));
 			return maxValue;
@@ -110,8 +95,8 @@ public class DbInterface {
 	}
 
 	/** Gets an array of longs matching the arguments **/
-	public long[] getAllLongs(String table, String column) {
-		Cursor c = mDb.query(table, new String[] { column }, null, null, null, null, column);
+	public static long[] getAllLongs(SQLiteDatabase db, String table, String column) {
+		Cursor c = db.query(table, new String[] { column }, null, null, null, null, column);
 		if (!c.moveToFirst()) {
 			Log.d(TAG, "Tried to load a long[], but there are none in " + table + "-" + column);
 			c.close();

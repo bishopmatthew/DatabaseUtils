@@ -69,7 +69,8 @@ public abstract class SqlObject implements Serializable {
 	}
 
 	public String getTableName() {
-		return this.getClass().getSimpleName();
+		return this.getClass()
+								.getSimpleName();
 	}
 
 	// CRUD OPERATIONS
@@ -82,18 +83,18 @@ public abstract class SqlObject implements Serializable {
 	 * 
 	 * @throws Exception
 	 **/
-	protected boolean create(DbInterface db) {
+	protected boolean create(SQLiteDatabase db) {
 		ContentValues values = this.toContentValues();
 		// we're not setting id when we create this
 		values.remove(ID);
 
-		id = db.getDb().insert(getTableName(), null, values);
+		id = db.insert(getTableName(), null, values);
 		return (id != -1);
 	}
 
-	public boolean read(DbInterface db, long idToRead) {
-		Cursor cursor = db.getDb().query(getTableName(), getColNames(), ID + "=?",
-				new String[] { Long.toString(idToRead) }, null, null, null);
+	public boolean read(SQLiteDatabase db, long idToRead) {
+		Cursor cursor = db.query(getTableName(), getColNames(), ID + "=?", new String[] { Long.toString(idToRead) }, null,
+				null, null);
 
 		if (cursor.moveToFirst()) {
 			readFromCursor(cursor);
@@ -140,29 +141,21 @@ public abstract class SqlObject implements Serializable {
 		}
 	}
 
-	// TODO I can probably abstract the creation of the content values out
-	// between create and update
-	public boolean update(DbInterface db) {
+	public boolean update(SQLiteDatabase db) {
 		ContentValues values = this.toContentValues();
-
-		return db.getDb().update(getTableName(), values, ID + "=?", new String[] { Long.toString(id) }) > 0;
+		return db.update(getTableName(), values, ID + "=?", new String[] { Long.toString(id) }) > 0;
 	}
 
-	public boolean delete(DbInterface db) {
-		if (!db.exists(getTableName(), ID, Long.toString(id))) {
+	public boolean delete(SQLiteDatabase db) {
+		if (!DbUtils.exists(db, getTableName(), ID, Long.toString(id))) {
 			Log.d(TAG, "Tried to delete a nonexistent " + ID + "=" + id);
 			return false;
 		} else {
-			return db.getDb().delete(getTableName(), ID + "=?", new String[] { Long.toString(id) }) == 1;
+			return db.delete(getTableName(), ID + "=?", new String[] { Long.toString(id) }) == 1;
 		}
 	}
 
 	// TABLE OPERATIONS
-
-	/** Creates a table for these objects if one doesn't already exist **/
-	public boolean createTable(DbInterface db) {
-		return createTable(db.getDb());
-	}
 
 	/** Creates a table for these objects if one doesn't already exist **/
 	public boolean createTable(SQLiteDatabase db) {
@@ -171,7 +164,8 @@ public abstract class SqlObject implements Serializable {
 		statement += ID + " INTEGER PRIMARY KEY, ";
 		for (Field col : fields) {
 			// skip id (although I don't think it will show up in subclasses)
-			if (col.getName().equals(ID)) continue;
+			if (col.getName()
+							.equals(ID)) continue;
 
 			// handle other types
 			statement += col.getName() + " " + getFieldSqlType(col) + ", ";
@@ -184,8 +178,8 @@ public abstract class SqlObject implements Serializable {
 	}
 
 	/** Check if the table this object defines exists **/
-	public boolean tableExists(DbInterface db) {
-		Cursor c = db.getDb().rawQuery(CHECK_TABLE_EXISTS, new String[] { getTableName() });
+	public boolean tableExists(SQLiteDatabase db) {
+		Cursor c = db.rawQuery(CHECK_TABLE_EXISTS, new String[] { getTableName() });
 		return (c != null && c.moveToFirst());
 	}
 
@@ -220,8 +214,7 @@ public abstract class SqlObject implements Serializable {
 
 	private boolean isColField(Field toCheck) {
 		int modifiers = toCheck.getModifiers();
-		return (!Modifier.isTransient(modifiers) && Modifier.isPublic(modifiers) && !Modifier
-				.isStatic(modifiers));
+		return (!Modifier.isTransient(modifiers) && Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers));
 	}
 
 	private Field[] getColFields() {
@@ -246,7 +239,8 @@ public abstract class SqlObject implements Serializable {
 			Object toSave = field.get(this);
 			if (toSave instanceof Integer) {
 				return INTEGER;
-			} else if (toSave.getClass().isEnum()) {
+			} else if (toSave.getClass()
+												.isEnum()) {
 				return ENUM;
 			} else if (toSave instanceof Boolean) {
 				return BOOLEAN;
@@ -278,7 +272,8 @@ public abstract class SqlObject implements Serializable {
 
 				if (toSave instanceof Integer) {
 					values.put(field.getName(), (Integer) toSave);
-				} else if (toSave.getClass().isEnum()) {
+				} else if (toSave.getClass()
+													.isEnum()) {
 					values.put(field.getName(), toSave.toString());
 				} else if (toSave instanceof Boolean) {
 					values.put(field.getName(), (Boolean) toSave);
