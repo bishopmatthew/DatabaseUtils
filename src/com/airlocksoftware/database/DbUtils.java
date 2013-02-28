@@ -22,34 +22,35 @@ public class DbUtils {
 	// CONSTANTS
 	private static final String TAG = DbUtils.class.getSimpleName();
 
-	/** Gets the SQL query as a string from R.xml.sql_queries by it's 'name' attribute **/
-	public static String getSqlFromXml(Context context, String name) {
-		XmlResourceParser parser = context.getResources()
-																			.getXml(R.xml.sql_queries);
-		String query = null;
-		while (true) {
-			try {
-				int eventType = parser.next();
-				if (eventType == XmlPullParser.END_DOCUMENT) {
-					break;
-				} else if (eventType == XmlPullParser.START_TAG && parser.getName()
-																																	.equals("query")
-						&& parser.getAttributeValue(null, "name")
-											.equals(name) && parser.next() == XmlPullParser.TEXT) {
-
-					query = parser.getText();
-					break;
-				}
-			} catch (Exception e) {
-				Log.e("TEST", "Error parsing sql_queries.xml for " + name);
-				break;
-			}
-		}
-
-		return query.trim()
-								.replace("/n", "")
-								.replace("/t", "");
-	}
+	// /** Gets the SQL query as a string from R.xml.sql_queries by it's 'name'
+	// attribute **/
+	// public static String getSqlFromXml(Context context, String name) {
+	// XmlResourceParser parser = context.getResources()
+	// .getXml(R.xml.sql_queries);
+	// String query = null;
+	// while (true) {
+	// try {
+	// int eventType = parser.next();
+	// if (eventType == XmlPullParser.END_DOCUMENT) {
+	// break;
+	// } else if (eventType == XmlPullParser.START_TAG && parser.getName()
+	// .equals("query")
+	// && parser.getAttributeValue(null, "name")
+	// .equals(name) && parser.next() == XmlPullParser.TEXT) {
+	//
+	// query = parser.getText();
+	// break;
+	// }
+	// } catch (Exception e) {
+	// Log.e("TEST", "Error parsing sql_queries.xml for " + name);
+	// break;
+	// }
+	// }
+	//
+	// return query.trim()
+	// .replace("/n", "")
+	// .replace("/t", "");
+	// }
 
 	/** Checks if any rows match the arguments **/
 	public static boolean exists(SQLiteDatabase db, String table, String whereClause, String[] whereArgs) {
@@ -105,6 +106,40 @@ public class DbUtils {
 		long[] toReturn = new long[c.getCount()];
 		for (int i = 0; i < c.getCount(); i++) {
 			toReturn[i] = c.getLong(c.getColumnIndex(column));
+			c.moveToNext();
+		}
+		c.close();
+		return toReturn;
+	}
+	
+	/** Gets an array of all ints matching the arguments**/
+	public static int[] getAllInts(SQLiteDatabase db, String table, String column) {
+		Cursor c = db.query(table, new String[] { column }, null, null, null, null, column);
+		if (!c.moveToFirst()) {
+			Log.d(TAG, "Tried to load a int[], but there are none in " + table + "-" + column);
+			c.close();
+			return null;
+		}
+		int[] toReturn = new int[c.getCount()];
+		for (int i = 0; i < c.getCount(); i++) {
+			toReturn[i] = c.getInt(c.getColumnIndex(column));
+			c.moveToNext();
+		}
+		c.close();
+		return toReturn;
+	}
+	
+	/** Gets an array of all ints matching the arguments**/
+	public static int[] getAllInts(SQLiteDatabase db, String table, String column, String where, String[] whereArgs) {
+		Cursor c = db.query(table, new String[] { column }, where, whereArgs, null, null, column);
+		if (!c.moveToFirst()) {
+			Log.d(TAG, "Tried to load a int[], but there are none in " + table + "-" + column);
+			c.close();
+			return null;
+		}
+		int[] toReturn = new int[c.getCount()];
+		for (int i = 0; i < c.getCount(); i++) {
+			toReturn[i] = c.getInt(c.getColumnIndex(column));
 			c.moveToNext();
 		}
 		c.close();
